@@ -6,16 +6,17 @@
 
 <script src="jquery.min.js"></script>
 <script src="Chart.min.js"></script>
-
+<script src="Chart.Zoom.min.js"></script>
 </head>
 <body>
-        <div style="width:60%;">
+        <div style="width:80%;height:80%">
                 <canvas id="myChart"></canvas>
         </div>
                 <div>
 
                         <button id="start">Start</button>
                         <button id="stop">Stop</button>
+                                                <button id="resetGraph">Reset Graph</button>
                         <span id="counter"></span>
                 </div>
 <div id="output">
@@ -173,7 +174,7 @@ window.chartColors = {
                                 },
                                 hover: {
                                         mode: 'nearest',
-                                        intersect: true
+                                        intersect: false
                                 },
                                 scales: {
                                         xAxes: [{
@@ -190,6 +191,25 @@ window.chartColors = {
                                                         labelString: 'Value'
                                                 }
                                         }]
+                                },
+                                // Container for pan options
+                                pan: {
+                                    // Boolean to enable panning
+                                    enabled: true,
+
+                                    // Panning directions. Remove the appropriate direction to disable
+                                    // Eg. 'y' would only allow panning in the y direction
+                                    mode: 'y'
+                                },
+
+                                // Container for zoom options
+                                zoom: {
+                                    // Boolean to enable zooming
+                                    enabled: true,
+
+                                    // Zooming directions. Remove the appropriate direction to disable
+                                    // Eg. 'y' would only allow zooming in the y direction
+                                    mode: 'y',
                                 }
                         }
                 };
@@ -277,5 +297,8 @@ $("#stop").click(function(){
 $.get("/modbusda/stop");
 });
 
+$("#resetGraph").click(function(){
+window.myLine.resetZoom();
+});
 </script>
 </html
