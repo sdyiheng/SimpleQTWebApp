@@ -6,6 +6,7 @@
 
 <script src="jquery.min.js"></script>
 <script src="Chart.min.js"></script>
+<script src="hammer.min.js"></script>
 <script src="Chart.Zoom.min.js"></script>
 </head>
 <body>
@@ -40,127 +41,95 @@ window.chartColors = {
 
         Chart.defaults.global.animation = false;
 
+var points = 20;
+var labels = [];
 
+var data1 = {
+            label: 'Channel1',
+            fill: false,
+            backgroundColor: window.chartColors.red,
+            borderColor: window.chartColors.red,
+            data: [],
+            };
+var data2 = {
+            label: 'Channel2',
+            fill: false,
+            backgroundColor: window.chartColors.blue,
+            borderColor: window.chartColors.blue,
+            data: [],
+            };
+var data3 = {
+            label: 'Channel3',
+            fill: false,
+            backgroundColor: window.chartColors.yellow,
+            borderColor: window.chartColors.yellow,
+            data: [],
+            };
+var data4 = {
+            label: 'Channel4',
+            fill: false,
+            backgroundColor: window.chartColors.green,
+            borderColor: window.chartColors.green,
+            data: [],
+            };
+var data5 = {
+            label: 'Channel5',
+            fill: false,
+            backgroundColor: window.chartColors.yellow,
+            borderColor: window.chartColors.yellow,
+            data: [],
+            };
+var data6 = {
+            label: 'Channel6',
+            fill: false,
+            backgroundColor: window.chartColors.blue,
+            borderColor: window.chartColors.blue,
+            data: [],
+            };
+var data7 = {
+            label: 'Channel7',
+            fill: false,
+            backgroundColor: window.chartColors.red,
+            borderColor: window.chartColors.red,
+            data: [],
+            };
+var data8 = {
+            label: 'Channel8',
+            fill: false,
+            backgroundColor: window.chartColors.purple,
+            borderColor: window.chartColors.purple,
+            data: [],
+            };
+
+for(var i = 0;i<points;i++){
+    labels.push("");
+    data1.data.push(0);
+    data2.data.push(0);
+    data3.data.push(0);
+    data4.data.push(0);
+    data5.data.push(0);
+    data6.data.push(0);
+    data7.data.push(0);
+    data8.data.push(0);
+}
+
+var channelMapping = {};
+channelMapping["0"] = 0;
+channelMapping["1"] = 1;
+channelMapping["2"] = 2;
+channelMapping["3"] = 3;
+channelMapping["4"] = 4;
+channelMapping["5"] = 5;
+channelMapping["6"] = 6;
+channelMapping["7"] = 7;
 
     var ctx = document.getElementById("myChart").getContext("2d");
 //var MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
                 var config = {
                         type: 'line',
                         data: {
-                                labels: ['', '', '', '', '', '', ''],
-                                datasets: [{
-                                        label: 'Channel1',
-                                        backgroundColor: window.chartColors.red,
-                                        borderColor: window.chartColors.red,
-                                        data: [
-                                                0,
-                                                0,
-                                                0,
-                                                0,
-                                                0,
-                                                0,
-                                                0
-                                        ],
-                                        fill: false,
-                                }, {
-                                        label: 'Channel2',
-                                        fill: false,
-                                        backgroundColor: window.chartColors.blue,
-                                        borderColor: window.chartColors.blue,
-                                        data: [
-                                                0,
-                                                0,
-                                                0,
-                                                0,
-                                                0,
-                                                0,
-                                                0
-                                        ],
-                                }, {
-                                        label: 'Channel3',
-                                        fill: false,
-                                        backgroundColor: window.chartColors.yellow,
-                                        borderColor: window.chartColors.yellow,
-                                        data: [
-                                                0,
-                                                0,
-                                                0,
-                                                0,
-                                                0,
-                                                0,
-                                                0
-                                        ],
-                                }, {
-                                        label: 'Channel4',
-                                        fill: false,
-                                        backgroundColor: window.chartColors.green,
-                                        borderColor: window.chartColors.green,
-                                        data: [
-                                                0,
-                                                0,
-                                                0,
-                                                0,
-                                                0,
-                                                0,
-                                                0
-                                        ],
-                                }, {
-                                        label: 'Channel5',
-                                        fill: false,
-                                        backgroundColor: window.chartColors.yellow,
-                                        borderColor: window.chartColors.yellow,
-                                        data: [
-                                                0,
-                                                0,
-                                                0,
-                                                0,
-                                                0,
-                                                0,
-                                                0
-                                        ],
-                                }, {
-                                        label: 'Channel6',
-                                        fill: false,
-                                        backgroundColor: window.chartColors.blue,
-                                        borderColor: window.chartColors.blue,
-                                        data: [
-                                                0,
-                                                0,
-                                                0,
-                                                0,
-                                                0,
-                                                0,
-                                                0
-                                        ],
-                                }, {
-                                        label: 'Channel7',
-                                        fill: false,
-                                        backgroundColor: window.chartColors.red,
-                                        borderColor: window.chartColors.red,
-                                        data: [
-                                                0,
-                                                0,
-                                                0,
-                                                0,
-                                                0,
-                                                0,
-                                                0
-                                        ],
-                                }, {
-                                        label: 'Channel8',
-                                        fill: false,
-                                        backgroundColor: window.chartColors.purple,
-                                        borderColor: window.chartColors.purple,
-                                        data: [
-                                                0,
-                                                0,
-                                                0,
-                                                0,
-                                                0,
-                                                0,
-                                                0
-                                        ],
-                                }]
+                                labels: labels,
+                                datasets: [data1,data2 ,data3,data4,data5,data6,data7,data8 ]
                         },
                         options: {
                                 responsive: true,
@@ -256,9 +225,10 @@ window.chartColors = {
                 debugger;
                 var data = JSON.parse(evt.data);
                 if(config.data.datasets.length > data.channel){
-                        config.data.datasets[data.channel].data.push(data.value);
-                        if(config.data.datasets[data.channel].data.length>7)
-                                config.data.datasets[data.channel].data.shift();
+                        var dataIndex = channelMapping[data.channel];
+                        config.data.datasets[dataIndex].data.push(data.value);
+                        if(config.data.datasets[dataIndex].data.length>points)
+                                config.data.datasets[dataIndex].data.shift();
 
                 updateCounter = ++updateCounter%8;
                 if( updateCounter == 0)

@@ -18,7 +18,7 @@ bool Modbus_DataAcquire_Controller::matchUrl(QByteArray& path)
 }
 
 void Modbus_DataAcquire_Controller::start(){
-    this->modbusDA->start(5000000);
+    this->modbusDA->start(10000000);
 }
 
 void Modbus_DataAcquire_Controller::stop(){
