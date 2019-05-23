@@ -41,12 +41,13 @@ window.chartColors = {
 
         Chart.defaults.global.animation = false;
 
-var points = 100;
+var points = 150;
 var labels = [];
 
 var data1 = {
             label: 'Channel1',
             fill: false,
+            lineTension:0,
             backgroundColor: window.chartColors.red,
             borderColor: window.chartColors.red,
             data: [],
@@ -54,6 +55,7 @@ var data1 = {
 var data2 = {
             label: 'Channel2',
             fill: false,
+            lineTension:0,
             backgroundColor: window.chartColors.blue,
             borderColor: window.chartColors.blue,
             data: [],
@@ -61,6 +63,7 @@ var data2 = {
 var data3 = {
             label: 'Channel3',
             fill: false,
+            lineTension:0,
             backgroundColor: window.chartColors.yellow,
             borderColor: window.chartColors.yellow,
             data: [],
@@ -68,6 +71,7 @@ var data3 = {
 var data4 = {
             label: 'Channel4',
             fill: false,
+            lineTension:0,
             backgroundColor: window.chartColors.green,
             borderColor: window.chartColors.green,
             data: [],
@@ -75,6 +79,7 @@ var data4 = {
 var data5 = {
             label: 'Channel5',
             fill: false,
+            lineTension:0,
             backgroundColor: window.chartColors.yellow,
             borderColor: window.chartColors.yellow,
             data: [],
@@ -82,6 +87,7 @@ var data5 = {
 var data6 = {
             label: 'Channel6',
             fill: false,
+            lineTension:0,
             backgroundColor: window.chartColors.blue,
             borderColor: window.chartColors.blue,
             data: [],
@@ -89,6 +95,7 @@ var data6 = {
 var data7 = {
             label: 'Channel7',
             fill: false,
+            lineTension:0,
             backgroundColor: window.chartColors.red,
             borderColor: window.chartColors.red,
             data: [],
@@ -96,6 +103,7 @@ var data7 = {
 var data8 = {
             label: 'Channel8',
             fill: false,
+            lineTension:0,
             backgroundColor: window.chartColors.purple,
             borderColor: window.chartColors.purple,
             data: [],
@@ -140,6 +148,7 @@ channelMapping["7"] = 7;
                                 tooltips: {
                                         mode: 'index',
                                         intersect: false,
+                                        enabled:false,
                                 },
                                 hover: {
                                         mode: 'nearest',
@@ -215,25 +224,34 @@ channelMapping["7"] = 7;
         writeToScreen("DISCONNECTED");
     }
 
-    var updateCounter = 0;
+    //var updateCounter = 0;
     function onMessage(evt) {
-                //console.log(evt);
-                if(!evt.data)
-                        return;
-                counter++;
-                $("#counter").html("Received "+counter+" Messages");
-                debugger;
-                var data = JSON.parse(evt.data);
-                if(config.data.datasets.length > data.channel){
-                        var dataIndex = channelMapping[data.channel];
-                        config.data.datasets[dataIndex].data.push(data.value);
-                        if(config.data.datasets[dataIndex].data.length>points)
-                                config.data.datasets[dataIndex].data.shift();
+        //console.log(evt);
+        if(!evt.data)
+                return;
+        counter++;
+        $("#counter").html("Received "+counter+" Messages");
+        debugger;
 
-                updateCounter = ++updateCounter%8;
-                if( updateCounter == 0)
-                    window.myLine.update();// = new Chart(ctx, config);
-                }
+        var datas = JSON.parse(evt.data);
+        if(!datas){
+            return;
+        }
+
+        for(var i =0;i<datas.length;i++){
+
+            //获取数据
+            var data = datas[i];
+            var dataIndex = channelMapping[data.channel];
+            if(!dataIndex && dataIndex !=0)
+                continue;//未找到匹配关系
+
+            config.data.datasets[dataIndex].data.push(data.value);
+            if(config.data.datasets[dataIndex].data.length>points)
+                    config.data.datasets[dataIndex].data.shift();
+        }
+
+        window.myLine.update();
 
         //writeToScreen('<span style="color: blue;">RESPONSE: '+ evt.data+'</span>');
         //websocket.close();

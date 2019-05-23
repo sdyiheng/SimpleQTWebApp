@@ -24,10 +24,10 @@ Modbus_DataAcquire::Modbus_DataAcquire(const QSettings* settings, QObject *paren
     this->modbusClient->setTimeout(1000);//连接超时1S
     this->modbusClient->setNumberOfRetries(3);//连接失败重试三次连接
 
+    //websocket连接侦听
     websocketserver = new QWebSocketServer("Server", QWebSocketServer::NonSecureMode);
-
     connect(websocketserver,SIGNAL(newConnection()),this,SLOT(onNewWebSocketConnection()));
-    websocketserver->listen(QHostAddress::Any, 8081);
+    websocketserver->listen(QHostAddress::Any, this->settings->value("websocketport").toInt());
 }
 
 void Modbus_DataAcquire::onNewWebSocketConnection(){
@@ -75,12 +75,15 @@ void Modbus_DataAcquire::doDataAcquire()
     try
     {
         //起始地址
-        int startAddress = 0;
+        int startAddress =  settings->value("startAddress").toInt();
         //寄存器长度
-        int numberOfEntries = 10;
+        int numberOfEntries =  settings->value("numberOfEntries").toInt();
+        //从设备id
+        int slaveUnitID = settings->value("slaveUnitID").toInt();
+
         if(this->unit == nullptr)
             this->unit = new QModbusDataUnit(QModbusDataUnit::HoldingRegisters, startAddress, numberOfEntries);
-        auto *reply = this->modbusClient->sendReadRequest(*unit,1);
+        auto *reply = this->modbusClient->sendReadRequest(*unit,slaveUnitID);
 
         if (!reply->isFinished())
             connect(reply, &QModbusReply::finished, this, &Modbus_DataAcquire::onReplayFinished);
@@ -88,6 +91,11 @@ void Modbus_DataAcquire::doDataAcquire()
     }
     catch(QException ex)
     {
+        qDebug(ex.what());
+        //如果连接出现异常，尝试重新连接
+        if(this->modbusClient->state() == QModbusDevice::State::UnconnectedState){
+            this->modbusClient->connectDevice();
+        }
 
     }
 
@@ -101,18 +109,33 @@ void Modbus_DataAcquire::onReplayFinished(){
 
     disconnect(reply,0,0,0);
 
+    QString json = "[";
     if (reply->error() == QModbusDevice::NoError) {
         const QModbusDataUnit unit = reply->result();
-        for (uint i = 0; i < unit.valueCount(); i++) {
-            const QString entry = tr("{\"channel\":%1,\"value\":%2}").arg(unit.startAddress() + i)
-                                     .arg(QString::number(unit.value(i),
-                                          unit.registerType() <= QModbusDataUnit::Coils ? 10 : 10).toInt()+qrand()%8);// for demo
+        int valueCount = unit.valueCount();
+        for (uint i = 0; i < valueCount; i++) {
+            const QString entry = tr("{\"channel\":%1,\"value\":%2,\"count\":%3}")
+                    .arg(unit.startAddress() + i)
+                    .arg(QString::number(unit.value(i),unit.registerType() <= QModbusDataUnit::Coils ? 10 : 10).toInt()+qrand()%8)
+                    .arg(valueCount);//
             qDebug()<<entry;
-
-            for(int j=this->websocketConnections.length()-1;j>=0;j--){
-                this->websocketConnections.at(j)->sendTextMessage(entry);
+            if( json.length()>1)
+                json = json + ","+entry;
+            else {
+                json = json + entry;
             }
+
+//            for(int j=this->websocketConnections.length()-1;j>=0;j--){
+//                this->websocketConnections.at(j)->sendTextMessage(entry);
+//            }
             //ui->readValue->addItem(entry);
+        }
+
+        if(valueCount > 0){
+            json = json + "]";
+            for(int j=this->websocketConnections.length()-1;j>=0;j--){
+                this->websocketConnections.at(j)->sendTextMessage(json);
+            }
         }
 
 
