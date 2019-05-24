@@ -10,17 +10,18 @@
 <script src="Chart.Zoom.min.js"></script>
 </head>
 <body>
+                <div style="float:right; margin-top:50px;margin-right:50px;">
+
+                                <button id="start">Start Data Acquire</button>
+                                <button id="stop">Stop Data Acquire</button><br/>
+                                <span id="counter"></span><br/><br/>
+                                <button id="resetGraph">Reset Graph</button>
+                </div>
         <div style="width:80%;height:80%">
                 <canvas id="myChart"></canvas>
         </div>
-                <div>
-
-                        <button id="start">Start</button>
-                        <button id="stop">Stop</button>
-                                                <button id="resetGraph">Reset Graph</button>
-                        <span id="counter"></span>
-                </div>
 <div id="output">
+
 </div>
 </body>
 <script language="javascript" type="text/javascript">
@@ -47,7 +48,7 @@ var labels = [];
 var data1 = {
             label: 'Channel1',
             fill: false,
-            lineTension:0,
+            //lineTension:0,
             backgroundColor: window.chartColors.red,
             borderColor: window.chartColors.red,
             data: [],
@@ -55,7 +56,7 @@ var data1 = {
 var data2 = {
             label: 'Channel2',
             fill: false,
-            lineTension:0,
+            //lineTension:0,
             backgroundColor: window.chartColors.blue,
             borderColor: window.chartColors.blue,
             data: [],
@@ -63,7 +64,7 @@ var data2 = {
 var data3 = {
             label: 'Channel3',
             fill: false,
-            lineTension:0,
+            //lineTension:0,
             backgroundColor: window.chartColors.yellow,
             borderColor: window.chartColors.yellow,
             data: [],
@@ -71,7 +72,7 @@ var data3 = {
 var data4 = {
             label: 'Channel4',
             fill: false,
-            lineTension:0,
+            //lineTension:0,
             backgroundColor: window.chartColors.green,
             borderColor: window.chartColors.green,
             data: [],
@@ -79,7 +80,7 @@ var data4 = {
 var data5 = {
             label: 'Channel5',
             fill: false,
-            lineTension:0,
+            //lineTension:0,
             backgroundColor: window.chartColors.yellow,
             borderColor: window.chartColors.yellow,
             data: [],
@@ -87,7 +88,7 @@ var data5 = {
 var data6 = {
             label: 'Channel6',
             fill: false,
-            lineTension:0,
+            //lineTension:0,
             backgroundColor: window.chartColors.blue,
             borderColor: window.chartColors.blue,
             data: [],
@@ -95,7 +96,7 @@ var data6 = {
 var data7 = {
             label: 'Channel7',
             fill: false,
-            lineTension:0,
+            //lineTension:0,
             backgroundColor: window.chartColors.red,
             borderColor: window.chartColors.red,
             data: [],
@@ -103,7 +104,7 @@ var data7 = {
 var data8 = {
             label: 'Channel8',
             fill: false,
-            lineTension:0,
+            //lineTension:0,
             backgroundColor: window.chartColors.purple,
             borderColor: window.chartColors.purple,
             data: [],
@@ -262,7 +263,7 @@ channelMapping["7"] = 7;
     }
 
     function doSend(message) {
-        writeToScreen("SENT: " + message);
+        //writeToScreen("SENT: " + message);
         websocket.send(message);
     }
 
