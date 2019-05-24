@@ -10,7 +10,7 @@ Modbus_DataAcquire::Modbus_DataAcquire(const QSettings* settings, QObject *paren
 
     this->settings = settings;
 
-    this->modbusClient = new QModbusRtuSerialMaster();
+    this->modbusClient = new QModbusRtuSerialMaster(parent);
     QString port = settings->value("port").toString();
 
     qDebug()<<"Port:"<<port<<endl;
@@ -23,6 +23,8 @@ Modbus_DataAcquire::Modbus_DataAcquire(const QSettings* settings, QObject *paren
     this->modbusClient->setConnectionParameter(QModbusDevice::SerialStopBitsParameter,QSerialPort::OneStop);//停止位为1位
     this->modbusClient->setTimeout(1000);//连接超时1S
     this->modbusClient->setNumberOfRetries(3);//连接失败重试三次连接
+
+    //this->modbusClient->connectDevice();
 
     //websocket连接侦听
     websocketserver = new QWebSocketServer("Server", QWebSocketServer::NonSecureMode);
@@ -125,10 +127,6 @@ void Modbus_DataAcquire::onReplayFinished(){
                 json = json + entry;
             }
 
-//            for(int j=this->websocketConnections.length()-1;j>=0;j--){
-//                this->websocketConnections.at(j)->sendTextMessage(entry);
-//            }
-            //ui->readValue->addItem(entry);
         }
 
         if(valueCount > 0){
