@@ -2,37 +2,18 @@
 #define MODBUS_DATAACQUIRE_THREAD_H
 
 #include <QThread>
-#include <QtSerialBus/QModbusRtuSerialMaster>
 
+class Modbus_DataAcquire_Controller;
 
-class Modbus_DataAcquire_Thread: public QThread{
+class Modbus_DataAcquire_Thread:public QObject
+{
     Q_OBJECT
 
-private :
-    long counter;
-    bool isDone();
-    void doDataAcquire(QModbusRtuSerialMaster*);
+private:
+    Modbus_DataAcquire_Controller *controller;
 
 public:
-    void setCounter(long _counter)
-    {
-        this->counter = _counter;
-    }
-
-    long getCounter()
-    {
-        return this->counter;
-    }
-
-    explicit Modbus_DataAcquire_Thread(QObject *parent = nullptr)
-            : QThread(parent)
-        {
-            //qDebug() << "Worker Thread : " << QThread::currentThreadId();
-        }
-
-protected:
-    void run();
-
+    Modbus_DataAcquire_Thread(Modbus_DataAcquire_Controller *controller);
 };
 
 #endif // MODBUS_DATAACQUIRE_THREAD_H

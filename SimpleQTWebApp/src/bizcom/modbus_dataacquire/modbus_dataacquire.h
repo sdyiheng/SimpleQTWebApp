@@ -4,6 +4,7 @@
 #include <QtCore>
 #include <QtSerialBus/QModbusRtuSerialMaster>
 #include <QtWebSockets/QWebSocketServer>
+#include "modbus_dataacquire_controller.h"
 
 class Modbus_DataAcquire : public QObject
 {
@@ -11,7 +12,7 @@ class Modbus_DataAcquire : public QObject
 
 public:
 
-    explicit Modbus_DataAcquire(const QSettings* settings, QObject *parent = nullptr);
+    explicit Modbus_DataAcquire(const QSettings* settings, const Modbus_DataAcquire_Controller* controller, QObject *parent = nullptr);
 
     void setCounter(long _leftCounter)
     {
@@ -23,6 +24,9 @@ public:
         return this->leftCounter;
     }
 
+    void init();
+
+public slots:
     void start(int leftCounter);
     void stop();
 
@@ -39,6 +43,7 @@ private:
     QWebSocketServer* websocketserver;
     QList<QWebSocket*> websocketConnections;
     QModbusDataUnit* unit;
+    const Modbus_DataAcquire_Controller* controller;
 
     bool isDone()
     {

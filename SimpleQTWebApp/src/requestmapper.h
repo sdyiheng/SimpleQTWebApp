@@ -7,6 +7,7 @@
 #define REQUESTMAPPER_H
 
 #include "httprequesthandler.h"
+#include "bizcom/modbus_dataacquire/modbus_dataacquire.h"
 
 using namespace stefanfrings;
 
@@ -23,6 +24,7 @@ private:
     int handlersCount;
     HttpRequestHandler** handlers;
     void initControllers();
+    Modbus_DataAcquire* modbusDA;
 
 
 public:

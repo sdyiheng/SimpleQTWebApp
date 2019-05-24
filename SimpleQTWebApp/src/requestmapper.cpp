@@ -15,6 +15,7 @@
 
 #include "bizcom/modbus_dataacquire/modbus_dataacquire_controller.h"
 #include "../AppFramework/wellknown/appinfo.h"
+#include "bizcom/modbus_dataacquire/modbus_dataacquire.h"
 
 /** Redirects log messages to a file */
 extern FileLogger* logger;
@@ -36,11 +37,19 @@ RequestMapper::RequestMapper(QObject* parent)
     this->handlers[3] = new FileUploadController(parent);
     this->handlers[4] = new SessionController(parent);
 
+
+    Modbus_DataAcquire_Controller *controller = new Modbus_DataAcquire_Controller(parent);
+    this->handlers[5] = controller;
+
     //Configure modbus ds
     QSettings* modbusDASettings=new QSettings(AppInfo::getInstance().getAppConfigFileName(),QSettings::IniFormat,AppInfo::getInstance().getApp());
     modbusDASettings->beginGroup("modbusda");
-    Modbus_DataAcquire* modbusDA = new Modbus_DataAcquire(modbusDASettings, AppInfo::getInstance().getApp());
-    this->handlers[5] = new Modbus_DataAcquire_Controller(modbusDA,parent);
+    Modbus_DataAcquire* modbusDA = new Modbus_DataAcquire(modbusDASettings, controller, AppInfo::getInstance().getApp());
+    //modbusDA->moveToThread(new QThread());
+
+    this->modbusDA = modbusDA;
+
+    modbusDA->init();
 }
 
 

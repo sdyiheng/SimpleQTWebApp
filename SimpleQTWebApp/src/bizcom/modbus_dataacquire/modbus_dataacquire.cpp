@@ -3,33 +3,50 @@
 #include <QtCore>
 #include <QtWebSockets/QWebSocketServer>
 #include <QtWebSockets/QWebSocket>
+#include "modbus_dataacquire_controller.h"
 
-Modbus_DataAcquire::Modbus_DataAcquire(const QSettings* settings, QObject *parent) : QObject(parent)
+Modbus_DataAcquire::Modbus_DataAcquire(const QSettings* settings, const Modbus_DataAcquire_Controller* controller, QObject *parent) : QObject(parent)
 {
-    qsrand(QTime(0,0,0).secsTo(QTime::currentTime()));
-
     this->settings = settings;
+    this->controller = controller;
+}
 
-    this->modbusClient = new QModbusRtuSerialMaster(parent);
-    QString port = settings->value("port").toString();
+void Modbus_DataAcquire::init(){
 
-    qDebug()<<"Port:"<<port<<endl;
+    try {
 
-    //ModBus通信采用RTU传输模式，波特率115200，8数据位，1停止位，奇偶校验无。
-    this->modbusClient->setConnectionParameter(QModbusDevice::SerialPortNameParameter,port);//获取串口端口,下面设置各种参数
-    this->modbusClient->setConnectionParameter(QModbusDevice::SerialParityParameter,QSerialPort::NoParity);//无较验
-    this->modbusClient->setConnectionParameter(QModbusDevice::SerialBaudRateParameter,QSerialPort::Baud115200);//波特率为115200
-    this->modbusClient->setConnectionParameter(QModbusDevice::SerialDataBitsParameter,QSerialPort::Data8);//数据位为8位
-    this->modbusClient->setConnectionParameter(QModbusDevice::SerialStopBitsParameter,QSerialPort::OneStop);//停止位为1位
-    this->modbusClient->setTimeout(1000);//连接超时1S
-    this->modbusClient->setNumberOfRetries(3);//连接失败重试三次连接
+        QObject::connect(controller, SIGNAL(Modbus_DataAcquire_Controller::Signal_Start), this, SLOT(start));
+        QObject::connect(controller, SIGNAL(Modbus_DataAcquire_Controller::Signal_Stop), this, SLOT(stop));
 
-    //this->modbusClient->connectDevice();
+        qsrand(QTime(0,0,0).secsTo(QTime::currentTime()));
 
-    //websocket连接侦听
-    websocketserver = new QWebSocketServer("Server", QWebSocketServer::NonSecureMode);
-    connect(websocketserver,SIGNAL(newConnection()),this,SLOT(onNewWebSocketConnection()));
-    websocketserver->listen(QHostAddress::Any, this->settings->value("websocketport").toInt());
+
+
+        this->modbusClient = new QModbusRtuSerialMaster(this->parent());
+        QString port = settings->value("port").toString();
+
+        qDebug()<<"Port:"<<port<<endl;
+
+        //ModBus通信采用RTU传输模式，波特率115200，8数据位，1停止位，奇偶校验无。
+        this->modbusClient->setConnectionParameter(QModbusDevice::SerialPortNameParameter,port);//获取串口端口,下面设置各种参数
+        this->modbusClient->setConnectionParameter(QModbusDevice::SerialParityParameter,QSerialPort::NoParity);//无较验
+        this->modbusClient->setConnectionParameter(QModbusDevice::SerialBaudRateParameter,QSerialPort::Baud115200);//波特率为115200
+        this->modbusClient->setConnectionParameter(QModbusDevice::SerialDataBitsParameter,QSerialPort::Data8);//数据位为8位
+        this->modbusClient->setConnectionParameter(QModbusDevice::SerialStopBitsParameter,QSerialPort::OneStop);//停止位为1位
+        this->modbusClient->setTimeout(1000);//连接超时1S
+        this->modbusClient->setNumberOfRetries(3);//连接失败重试三次连接
+
+        //this->modbusClient->connectDevice();
+
+        //websocket连接侦听
+        websocketserver = new QWebSocketServer("Server", QWebSocketServer::NonSecureMode, this->parent());
+        connect(websocketserver,SIGNAL(newConnection()),this,SLOT(onNewWebSocketConnection()));
+        websocketserver->listen(QHostAddress::Any, this->settings->value("websocketport").toInt());
+
+    } catch (QException e) {
+        qDebug(e.what());
+    }
+
 }
 
 void Modbus_DataAcquire::onNewWebSocketConnection(){

@@ -6,10 +6,10 @@
 ///** Storage for session cookies */
 //extern Modbus_DataAcquire* modbusda;
 
-Modbus_DataAcquire_Controller::Modbus_DataAcquire_Controller(Modbus_DataAcquire* modbusDA, QObject* parent)
+Modbus_DataAcquire_Controller::Modbus_DataAcquire_Controller( QObject* parent)//Modbus_DataAcquire* modbusDA,
 : HttpRequestHandler(parent)
 {
-    this->modbusDA = modbusDA;
+    //this->modbusDA = modbusDA;
 }
 
 bool Modbus_DataAcquire_Controller::matchUrl(QByteArray& path)
@@ -18,11 +18,13 @@ bool Modbus_DataAcquire_Controller::matchUrl(QByteArray& path)
 }
 
 void Modbus_DataAcquire_Controller::start(){
-    this->modbusDA->start(10000000);
+    emit Signal_Start(1);
+    //this->modbusDA->start(1);
 }
 
 void Modbus_DataAcquire_Controller::stop(){
-    this->modbusDA->stop();
+    emit Signal_Stop();
+    //this->modbusDA->stop();
 }
 
 void Modbus_DataAcquire_Controller::service(HttpRequest& request, HttpResponse& response)
