@@ -118,7 +118,7 @@ void Modbus_DataAcquire::onReplayFinished(){
         for (uint i = 0; i < valueCount; i++) {
             const QString entry = tr("{\"channel\":%1,\"value\":%2,\"count\":%3}")
                     .arg(unit.startAddress() + i)
-                    .arg(QString::number(unit.value(i),unit.registerType() <= QModbusDataUnit::Coils ? 10 : 10).toInt()+qrand()%8)
+                    .arg(QString::number(unit.value(i),unit.registerType() <= QModbusDataUnit::Coils ? 10 : 10).toInt()+qrand())
                     .arg(valueCount);//
             qDebug()<<entry;
             if( json.length()>1)
