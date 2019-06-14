@@ -5,7 +5,7 @@
 #include "msgcontroller.h"
 #include <QtCore>
 
-typedef void (*MsgHandler)(void *);
+typedef void (*MsgHandler)();
 
 enum MsgHandleType{
     Sync,
@@ -15,6 +15,7 @@ enum MsgHandleType{
 
 class MsgBus
 {
+
 public:
     static MsgBus& getInstance(){
         static MsgBus instance;
@@ -32,7 +33,8 @@ public:
     void unRegisterMsgHandler(QString msgChannel);
     void unRegisterMsgHandler(QString msgChannel, MsgHandler msgHandler);
 
-    void postMsg(const Msg& msg);
+    //void postMsg(Msg msg);
+
 };
 
 #endif // MSGBUS_H
