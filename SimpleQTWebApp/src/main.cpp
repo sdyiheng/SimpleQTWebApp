@@ -33,6 +33,44 @@ using namespace stefanfrings;
 
  /*Modbus_DataAcquire* modbusDA*/;
 
+ void buildSearchDir( QStringList& searchList, const QString binDir, const QString appName)
+ {
+     searchList.append(binDir);
+
+     QDir path2(binDir+"/etc");
+     searchList.append(path2.absolutePath());
+
+     QDir path3(binDir+"/../etc");
+     searchList.append(path3.absolutePath());
+
+     QDir path4(binDir+"/../../etc");
+     searchList.append(path4.absolutePath());
+
+     QDir path5(binDir+"/../"+appName+"/etc");
+     searchList.append(path5.absolutePath());
+
+     QDir path6(binDir+"/../../"+appName+"/etc");
+     searchList.append(path6.absolutePath());
+
+     QDir path7(binDir+"/../../../"+appName+"/etc");
+     searchList.append(path7.absolutePath());
+
+     QDir path8(binDir+"/../../../../"+appName+"/etc");
+     searchList.append(path8.absolutePath());
+
+     QDir path9(binDir+"/../../../../../"+appName+"/etc");
+     searchList.append(path9.absolutePath());
+
+     QDir path10(binDir+"/../../../../../"+appName+"/etc");
+     searchList.append(path10.absolutePath());
+
+     QDir path11(QDir::rootPath()+"etc/opt");
+     searchList.append(path11.absolutePath());
+
+     QDir path12(QDir::rootPath()+"etc");
+     searchList.append(path12.absolutePath());
+ }
+
 
 /** Search the configuration file */
 QString searchConfigFile()
@@ -41,23 +79,12 @@ QString searchConfigFile()
     QString appName=QCoreApplication::applicationName();
     QString fileName(appName+".ini");
 
-    QStringList searchList;
+    QStringList searchDirList;
+    buildSearchDir(searchDirList, binDir, appName);
 
-    searchList.append(QDir::toNativeSeparators(binDir+"/"+fileName));
-    searchList.append(QDir::toNativeSeparators(binDir+"/etc"+"/"+fileName));
-//    searchList.append(QDir::toNativeSeparators(binDir+"/../etc"+"/"+fileName));
-//    searchList.append(QDir::toNativeSeparators(binDir+"/../../etc"+"/"+fileName));
-//    searchList.append(binDir+"/../"+appName+"/etc"); // for development with shadow build
-//    searchList.append(binDir+"/../../"+appName+"/etc"); // for development with shadow build
-//    searchList.append(binDir+"/../../../"+appName+"/etc"); // for development with shadow build
-//    searchList.append(binDir+"/../../../../"+appName+"/etc"); // for development with shadow build
-//    searchList.append(binDir+"/../../../../../"+appName+"/etc"); // for development with shadow build
-//    searchList.append(QDir::rootPath()+"etc/opt");
-//    searchList.append(QDir::rootPath()+"etc");
-
-    foreach (QString f, searchList)
+    foreach (QString path, searchDirList)
     {
-        QFile file(f);
+        QFile file(path+"/"+fileName);
         if (file.exists())
         {
             // found
@@ -68,7 +95,7 @@ QString searchConfigFile()
     }
 
     // not found
-    foreach (QString dir, searchList)
+    foreach (QString dir, searchDirList)
     {
         qWarning("%s/%s not found",qPrintable(dir),qPrintable(fileName));
     }
