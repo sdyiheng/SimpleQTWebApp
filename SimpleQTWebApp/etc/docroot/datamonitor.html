@@ -99,7 +99,7 @@
 
         <div id="right">
             <div style="width:90%">
-                <canvas id="myChart"></canvas>
+                <canvas id="myChart" @mousedown="mousedown" @mousemove="mousemove" @mouseup="mouseup" @mouseout="mouseout" ></canvas>
             </div>
         </div>
 
@@ -124,6 +124,9 @@
         histories: [],
         currentHistoryFile:"",
         currentHistoryFileRecordStart:0,
+        currentHistoryFileRecordStartNext:0,
+        chartmousedown:false,
+        preX:0,
     };
 
 
@@ -177,6 +180,9 @@
         vueData.userid = _userid;
         vueData.currentHistoryFile = "";
         vueData.currentHistoryFileRecordStart = 0;
+        vueData.currentHistoryFileRecordStartNext = 0;
+        
+        vueData.preX = 0;
         $.get("/modbusda/start?userid=" + vueData.userid);
     }
 
@@ -199,14 +205,79 @@
     function loadHistoryFile(historyFile){
         $.get("/modbusda/stop");
         vueData.currentHistoryFile = historyFile;
-        vueData.currentHistoryFileRecordStart = 0;
+        vueData.currentHistoryFileRecordStart = -1;
+        vueData.currentHistoryFileRecordStartNext = 0;
+        vueData.preX = 0;
         vueData.userid = "";
 
-        $.getJSON("/modbusda/historyrecord?filename="+vueData.currentHistoryFile+"&start="+vueData.currentHistoryFileRecordStart, function(retValue){
+        loadHistoryFileRecords();
+    }
+
+    var loadRecordTimer = null ;
+    function loadHistoryFileRecords(){
+        loadRecordTimer = null;
+        
+        //debugger;
+        if(!vueData.currentHistoryFile || vueData.currentHistoryFileRecordStart == vueData.currentHistoryFileRecordStartNext)
+            return;
+
+        
+        var start = vueData.currentHistoryFileRecordStartNext;
+        vueData.currentHistoryFileRecordStart = start;
+        $.getJSON("/modbusda/historyrecord?filename="+vueData.currentHistoryFile+"&start="+start, function(retValue){
             if( retValue && Array.isArray(retValue)){
                 resetDataSet(retValue);
+                if(start != vueData.currentHistoryFileRecordStart){
+                    //loadHistoryFileRecords();
+                    loadRecordTimer = window.setTimeout(loadHistoryFileRecords,0);
+                }
             }
         });
+    }
+
+    function mousedown(e){
+        //console.log(e);
+        if( vueData.currentHistoryFile){
+            vueData.chartmousedown = true;
+            vueData.preX = e.screenX;
+            vueData.currentHistoryFileRecordStartNext = vueData.currentHistoryFileRecordStart;
+            
+        }else{
+            vueData.chartmousedown = false;
+            vueData.preX = 0;
+        }
+    }
+    function mousemove(e){
+        if(!vueData.chartmousedown)
+            return;        
+        
+            debugger;
+        //console.log(e);
+        var offset = e.screenX - vueData.preX;
+        vueData.preX = e.screenX;
+        console.log(offset);
+
+        var start = vueData.currentHistoryFileRecordStartNext - offset;
+        if( start <0)
+            start  = 0;
+        
+        if( start != vueData.currentHistoryFileRecordStart){
+            vueData.currentHistoryFileRecordStartNext = start;
+            console.log(start);
+            if(loadRecordTimer==null)
+                loadHistoryFileRecords();
+            //loadHistoryFileRecords();
+        }
+    }
+    function mouseup(e){
+        vueData.chartmousedown = false;
+        vueData.preX = 0;
+        //console.log(e);       
+    }
+    function mouseout(e){
+        vueData.chartmousedown = false;
+        vueData.preX = 0;
+        //console.log(e);
     }
 
 
@@ -218,6 +289,10 @@
             stopDA: stopDA,
             resetGraph: resetGraph,
             refreshHistory: refreshHistory,
+            mousedown:mousedown,
+            mousemove:mousemove,
+            mouseup:mouseup,
+            mouseout:mouseout,
         }
     });
 

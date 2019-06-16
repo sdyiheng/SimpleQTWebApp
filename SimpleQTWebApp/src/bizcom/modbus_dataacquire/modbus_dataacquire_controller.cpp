@@ -69,17 +69,22 @@ QString queryHistoryRecords(QString file_name, QString start){
     if(!file.exists())
         return "[]";
 
+    QStringList skipRecords;
+    int left = 150;
+
     if (file.open(QIODevice::ReadOnly))
     {
        QTextStream in(&file);
        int lineCounter = -1;
-       int left = 150;
+
        while (!in.atEnd() && left > 0)
        {
           QString line = in.readLine();
           lineCounter++;
-          if(lineCounter<start)
+          if(lineCounter<_start){
+            skipRecords.append(line);
               continue;
+            }
 
           if( line.length() <=0)
               continue;
@@ -88,6 +93,12 @@ QString queryHistoryRecords(QString file_name, QString start){
           left--;
        }
        file.close();
+    }
+
+    while(skipRecords.length()>0 && records.length()<150){
+        QString last = skipRecords.at(skipRecords.length()-1);
+        skipRecords.removeAt(skipRecords.length()-1);
+        records.insert(0, last);
     }
 
     if(records.length() == 0)
