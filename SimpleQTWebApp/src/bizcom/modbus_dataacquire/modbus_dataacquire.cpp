@@ -3,6 +3,7 @@
 #include <QtCore>
 #include <QtWebSockets/QWebSocketServer>
 #include <QtWebSockets/QWebSocket>
+#include "appinfo.h"
 
 Modbus_DataAcquire::Modbus_DataAcquire(const QSettings* settings, QObject *parent) : QObject(parent)
 {
@@ -49,8 +50,10 @@ void Modbus_DataAcquire::socketDisconnected(){
     disconnect(pSocket,0,0,0);
 }
 
-void Modbus_DataAcquire::start(int _counter){
+
+void Modbus_DataAcquire::start(int _counter, QString fileName){
     this->leftCounter = _counter;
+    this->fileName = fileName;
 
     if (!this->modbusClient->connectDevice()) {
         qDebug("Connection Failed");
@@ -135,6 +138,27 @@ void Modbus_DataAcquire::onReplayFinished(){
                 this->websocketConnections.at(j)->sendTextMessage(json);
             }
         }
+
+        if( this->fileName.length() > 0){
+            QString full_path = AppInfo::getInstance().getAppRunningFolder()+"\\"+this->fileName;
+            QFile file(full_path);
+            // Trying to open in WriteOnly and Text mode
+            if(!file.open(QFile::WriteOnly | QFile::Text | QFile::Append))
+            {
+                qDebug() << "Could not open file for writing";
+                return;
+            }
+
+            QDateTime time = QDateTime::currentDateTime();
+            QTextStream out(&file);
+            out <<time.toString("yyyyMMddHHmmss");
+            out << ":";
+            out << json;
+            out << "\r\n";
+            file.flush();
+            file.close();
+        }
+
 
 
     }

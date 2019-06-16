@@ -27,6 +27,13 @@ public:
             app = _app;
         }
 
+        QString getAppRunningFolder(){
+            return appRunningFolder;
+        }
+        void setAppRunningFolder(QString _appRunningFolder){
+            appRunningFolder = _appRunningFolder;
+        }
+
 private:
         AppInfo() {}                    // Constructor? (the {} brackets) are needed here.
 
@@ -54,6 +61,7 @@ private:
 
         QString appConfigFileName;
         QCoreApplication* app;
+        QString appRunningFolder;
 };
 
 #endif // APPINFO_H

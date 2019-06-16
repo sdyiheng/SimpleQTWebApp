@@ -21,7 +21,7 @@ public:
 
     bool matchUrl(QByteArray& path);
 
-    void start();
+    void start(QString userid);
     void stop();
 
 private:

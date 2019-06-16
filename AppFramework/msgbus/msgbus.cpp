@@ -20,6 +20,6 @@ void MsgBus::unRegisterMsgHandler(QString msgChannel, MsgHandler msgHandler){
 }
 
 
-void MsgBus::postMsg(const Msg& msg){
+void MsgBus::postMsg(){
     //QString msgType = msg.msgType();
 }

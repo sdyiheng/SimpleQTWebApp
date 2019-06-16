@@ -121,6 +121,7 @@ int main(int argc, char *argv[])
     //
     AppInfo::getInstance().setAppConfigFileName(configFileName);
     AppInfo::getInstance().setApp(&app);
+    AppInfo::getInstance().setAppRunningFolder(QCoreApplication::applicationDirPath());
 
     // Configure logging into a file
     /*

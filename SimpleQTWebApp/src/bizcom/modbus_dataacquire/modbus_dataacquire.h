@@ -23,7 +23,7 @@ public:
         return this->leftCounter;
     }
 
-    void start(int leftCounter);
+    void start(int leftCounter, QString fileName);
     void stop();
 
 public slots:
@@ -35,6 +35,7 @@ private:
     /** Configuration settings */
     const QSettings* settings;
     long leftCounter;
+    QString fileName;
     QModbusRtuSerialMaster* modbusClient;
     QWebSocketServer* websocketserver;
     QList<QWebSocket*> websocketConnections;

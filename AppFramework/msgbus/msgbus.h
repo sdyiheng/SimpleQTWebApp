@@ -5,7 +5,7 @@
 #include "msgcontroller.h"
 #include <QtCore>
 
-typedef void (*MsgHandler)(Msg msg);
+typedef void (*MsgHandler)();
 
 enum MsgHandleType{
     Sync,
@@ -33,7 +33,7 @@ public:
     void unRegisterMsgHandler(QString msgChannel);
     void unRegisterMsgHandler(QString msgChannel, MsgHandler msgHandler);
 
-    void postMsg(Msg msg);
+    void postMsg();
 
 };
 

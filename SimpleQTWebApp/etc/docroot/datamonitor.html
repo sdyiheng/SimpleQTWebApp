@@ -1,293 +1,231 @@
+<!DOCTYPE html>
+
 <html>
 
 <head>
-<meta charset="UTF-8">
-<title>data monitor</title>
+    <meta charset="UTF-8">
+    <title>...实验数据采集</title>
+    <style>
+        html,
+        body,
+        .parent {
+            height: 100%;
+            overflow: hidden;
+        }
 
-<script src="jquery.min.js"></script>
-<script src="Chart.min.js"></script>
-<script src="hammer.min.js"></script>
-<script src="Chart.Zoom.min.js"></script>
+        .parent>div {
+            border: 0px solid #eee;
+        }
+
+        #top {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 90px;
+            display: flex;
+            justify-content: center;
+        }
+
+        #left {
+            position: absolute;
+            top: 90px;
+            /*值大于等于#top的高度*/
+            left: 0;
+            bottom: 50px;
+            /*值大于等于#bottom的高度*/
+            width: 300px;
+        }
+
+        #right {
+            position: absolute;
+            overflow: auto;
+            left: 300px;
+            /*值大于等于#left的宽度*/
+            right: 0;
+            top: 90px;
+            /*值大于等于#top的高度*/
+            bottom: 50px;
+            /*值大于等于#bottom的高度*/
+        }
+
+        #bottom {
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            height: 50px;
+            display: flex;
+            justify-content: center;
+        }
+    </style>
+    <link rel="stylesheet" href="pure-min.css">
+    <script src="jquery.min.js"></script>
+    <script src="Chart.min.js"></script>
+    <script src="hammer.min.js"></script>
+    <script src="Chart.Zoom.min.js"></script>
+    <script src="vue.min.js"></script>
 </head>
+
 <body>
-                <div style="float:right; margin-top:50px;margin-right:50px;">
-
-                                <button id="start">Start Data Acquire</button><br/>
-                                <button id="stop">Stop Data Acquire</button><br/>
-                                <span id="counter"></span><br/><br/>
-                                <button id="resetGraph">Reset Graph</button>
-                </div>
-        <div style="width:80%;height:80%">
-                <canvas id="myChart"></canvas>
+    <div id="app" class="parent">
+        <div id="top">
+            <h1>...实验数据采集</h1>
         </div>
-<div id="output">
 
-</div>
+        <div id="left" style="margin-top:80px;">
+            <div class="pure-menu " style="height: 180px;">
+                <span class="pure-menu-heading" style="background-color: #ddd">Data Acqure</span>
+                <ul class="pure-menu-list">
+                    <a href="#" id="start" class="pure-menu-link" @click="startDA">Start Data Acquire</a>
+                    <a href="#" id="stop" class="pure-menu-link" @click="stopDA">Stop Data Acquire</a>
+                    <a href="#" id="resetGraph" class="pure-menu-link" @click="resetGraph">Reset Graph</a>
+
+                </ul>
+
+            </div>
+
+            <div class="pure-menu " style="height: 160px;">
+                <span class="pure-menu-heading" style="background-color: #ddd">Data Query</span>
+                <ul class="pure-menu-list">
+                    <a href="#" id="loadHistory" class="pure-menu-link" @click="refreshHistory">Refresh History</a>
+                    <template v-for="historyFile in histories">
+                            <a href="#" class="pure-menu-link" @click="loadHistoryFile(historyFile)">{{historyFile}}</a>
+                    </template>
+                </ul>
+            </div>
+
+        </div>
+
+        <div id="right">
+            <div style="width:90%">
+                <canvas id="myChart"></canvas>
+            </div>
+        </div>
+
+        <div id="bottom">
+            <div id="output" style="display: inline-block;margin:10px;">{{outputMsg}}</div>
+            <div style="display: inline-block;margin:10px;" v-if="userid">Data Label:{{userid}}</div>
+            <div id="counter" style="display: inline-block;margin:10px;">{{damessage}}</div>
+        </div>
+    </div>
+
 </body>
+<script src="chartrender.js"></script>
 <script language="javascript" type="text/javascript">
-    var wsUri ="ws://localhost:8081/";
-    var output;
-    var counter = 0;
 
-window.chartColors = {
-        red: 'rgb(255, 99, 132)',
-        orange: 'rgb(255, 159, 64)',
-        yellow: 'rgb(255, 205, 86)',
-        green: 'rgb(75, 192, 192)',
-        blue: 'rgb(54, 162, 235)',
-        purple: 'rgb(153, 102, 255)',
-        grey: 'rgb(201, 203, 207)'
-};
+    const wsUri = "ws://localhost:8081/";
 
+    var vueData = {
+        damessage: "",
+        outputMsg: "",
+        userid: "",
+        counter: 0,
+        histories: [],
+        currentHistoryFile:"",
+        currentHistoryFileRecordStart:0,
+    };
 
-        Chart.defaults.global.animation = false;
-
-var points = 150;
-var labels = [];
-
-var data1 = {
-            label: 'Channel1',
-            fill: false,
-            //lineTension:0,
-            backgroundColor: window.chartColors.red,
-            borderColor: window.chartColors.red,
-            data: [],
-            };
-var data2 = {
-            label: 'Channel2',
-            fill: false,
-            //lineTension:0,
-            backgroundColor: window.chartColors.blue,
-            borderColor: window.chartColors.blue,
-            data: [],
-            };
-var data3 = {
-            label: 'Channel3',
-            fill: false,
-            //lineTension:0,
-            backgroundColor: window.chartColors.yellow,
-            borderColor: window.chartColors.yellow,
-            data: [],
-            };
-var data4 = {
-            label: 'Channel4',
-            fill: false,
-            //lineTension:0,
-            backgroundColor: window.chartColors.green,
-            borderColor: window.chartColors.green,
-            data: [],
-            };
-var data5 = {
-            label: 'Channel5',
-            fill: false,
-            //lineTension:0,
-            backgroundColor: window.chartColors.yellow,
-            borderColor: window.chartColors.yellow,
-            data: [],
-            };
-var data6 = {
-            label: 'Channel6',
-            fill: false,
-            //lineTension:0,
-            backgroundColor: window.chartColors.blue,
-            borderColor: window.chartColors.blue,
-            data: [],
-            };
-var data7 = {
-            label: 'Channel7',
-            fill: false,
-            //lineTension:0,
-            backgroundColor: window.chartColors.red,
-            borderColor: window.chartColors.red,
-            data: [],
-            };
-var data8 = {
-            label: 'Channel8',
-            fill: false,
-            //lineTension:0,
-            backgroundColor: window.chartColors.purple,
-            borderColor: window.chartColors.purple,
-            data: [],
-            };
-
-for(var i = 0;i<points;i++){
-    labels.push("");
-    data1.data.push(0);
-    data2.data.push(0);
-    data3.data.push(0);
-    data4.data.push(0);
-    data5.data.push(0);
-    data6.data.push(0);
-    data7.data.push(0);
-    data8.data.push(0);
-}
-
-var channelMapping = {};
-channelMapping["0"] = 0;
-channelMapping["1"] = 1;
-channelMapping["2"] = 2;
-channelMapping["3"] = 3;
-channelMapping["4"] = 4;
-channelMapping["5"] = 5;
-channelMapping["6"] = 6;
-channelMapping["7"] = 7;
-
-    var ctx = document.getElementById("myChart").getContext("2d");
-//var MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-                var config = {
-                        type: 'line',
-                        data: {
-                                labels: labels,
-                                datasets: [data1,data2 ,data3,data4,data5,data6,data7,data8 ]
-                        },
-                        options: {
-                                responsive: true,
-                                title: {
-                                        display: true,
-                                        text: 'Modbus Data Acquire'
-                                },
-                                tooltips: {
-                                        mode: 'index',
-                                        intersect: false,
-                                        enabled:false,
-                                },
-                                hover: {
-                                        mode: 'nearest',
-                                        intersect: false
-                                },
-                                scales: {
-                                        xAxes: [{
-                                                display: true,
-                                                scaleLabel: {
-                                                        display: true,
-                                                        labelString: 'Time'
-                                                }
-                                        }],
-                                        yAxes: [{
-                                                display: true,
-                                                scaleLabel: {
-                                                        display: true,
-                                                        labelString: 'Value'
-                                                }
-                                        }]
-                                },
-                                // Container for pan options
-                                pan: {
-                                    // Boolean to enable panning
-                                    enabled: true,
-
-                                    // Panning directions. Remove the appropriate direction to disable
-                                    // Eg. 'y' would only allow panning in the y direction
-                                    mode: 'y'
-                                },
-
-                                // Container for zoom options
-                                zoom: {
-                                    // Boolean to enable zooming
-                                    enabled: true,
-
-                                    // Zooming directions. Remove the appropriate direction to disable
-                                    // Eg. 'y' would only allow zooming in the y direction
-                                    mode: 'y',
-                                }
-                        }
-                };
-
-    window.myLine = new Chart(ctx, config);
-
-    function init() {
-        output = document.getElementById("output");
-        connectWebSocket();
-    }
 
     function connectWebSocket() {
         websocket = new WebSocket(wsUri);
-        websocket.onopen = function(evt) {
-            onOpen(evt)
+        websocket.onopen = function (evt) {
+            vueData.outputMsg = "SERVICE CONNECTED.";
+            websocket.send("WebSocket rocks");
         };
-        websocket.onclose = function(evt) {
-            onClose(evt)
+        websocket.onclose = function (evt) {
+            vueData.outputMsg = "SERVICE DISCONNECTED.";
         };
-        websocket.onmessage = function(evt) {
-            onMessage(evt)
+        websocket.onmessage = function (evt) {
+            onMessage(evt);
         };
-        websocket.onerror = function(evt) {
-            onError(evt)
+        websocket.onerror = function (evt) {
+            vueData.outputMsg = 'SERVICE ERROR:' + evt.data + ".";
         };
     }
 
-    function onOpen(evt) {
-        writeToScreen("CONNECTED");
-        doSend("WebSocket rocks");
-    }
 
-    function onClose(evt) {
-        writeToScreen("DISCONNECTED");
-    }
-
-    //var updateCounter = 0;
     function onMessage(evt) {
-        //console.log(evt);
-        if(!evt.data)
-                return;
-        counter++;
-        $("#counter").html("Received "+counter+" Messages");
-        debugger;
+        if (!evt.data)
+            return;
 
+        if(vueData.currentHistoryFile)
+            return;
+
+        vueData.counter++;
+
+        vueData.damessage = "Received " + vueData.counter + " Messages.";
         var datas = JSON.parse(evt.data);
-        if(!datas){
+        if (!datas) {
             return;
         }
 
-        for(var i =0;i<datas.length;i++){
+        onDatas(datas);
+    }
 
-            //获取数据
-            var data = datas[i];
-            var dataIndex = channelMapping[data.channel];
-            if(!dataIndex && dataIndex !=0)
-                continue;//未找到匹配关系
+    function startDA() {
+        var _userid = window.prompt("请输入数据身份标识：", vueData.userid);
+        if (_userid === null)
+            return;
 
-            config.data.datasets[dataIndex].data.push(data.value);
-            if(config.data.datasets[dataIndex].data.length>points)
-                    config.data.datasets[dataIndex].data.shift();
-        }
+        vueData.counter = 0;
+        vueData.damessage = "Received " + vueData.counter + " Messages.";
 
+        clearData();
         window.myLine.update();
 
-        //writeToScreen('<span style="color: blue;">RESPONSE: '+ evt.data+'</span>');
-        //websocket.close();
+        vueData.userid = _userid;
+        vueData.currentHistoryFile = "";
+        vueData.currentHistoryFileRecordStart = 0;
+        $.get("/modbusda/start?userid=" + vueData.userid);
     }
 
-    function onError(evt) {
-        writeToScreen('<span style="color: red;">ERROR:</span> '+ evt.data);
+    function stopDA() {
+        $.get("/modbusda/stop");
+        refreshHistory();
     }
 
-    function doSend(message) {
-        //writeToScreen("SENT: " + message);
-        websocket.send(message);
+    function resetGraph() {
+        window.myLine.resetZoom();
     }
 
-    function writeToScreen(message) {
-        var pre = document.createElement("p");
-        pre.style.wordWrap = "break-word";
-        pre.innerHTML = message;
-        output.appendChild(pre);
+    function refreshHistory() {
+        $.getJSON("/modbusda/history",function(retValue){
+            if( retValue && Array.isArray(retValue))
+                vueData.histories = retValue;
+        });
     }
 
-    window.addEventListener("load", init, false);
+    function loadHistoryFile(historyFile){
+        $.get("/modbusda/stop");
+        vueData.currentHistoryFile = historyFile;
+        vueData.currentHistoryFileRecordStart = 0;
+        vueData.userid = "";
+
+        $.getJSON("/modbusda/historyrecord?filename="+vueData.currentHistoryFile+"&start="+vueData.currentHistoryFileRecordStart, function(retValue){
+            if( retValue && Array.isArray(retValue)){
+                resetDataSet(retValue);
+            }
+        });
+    }
 
 
-$("#start").click(function(){
-$.get("/modbusda/start");
-});
+    var app = new Vue({
+        el: '#app',
+        data: vueData,
+        methods: {
+            startDA: startDA,
+            stopDA: stopDA,
+            resetGraph: resetGraph,
+            refreshHistory: refreshHistory,
+        }
+    });
 
+    buildChart();
 
-$("#stop").click(function(){
-$.get("/modbusda/stop");
-});
+    connectWebSocket();
+    refreshHistory();
 
-$("#resetGraph").click(function(){
-window.myLine.resetZoom();
-});
 </script>
+
 </html
