@@ -7,6 +7,8 @@
 ///** Storage for session cookies */
 //extern Modbus_DataAcquire* modbusda;
 
+const int RECORD_PAGE = 150;
+
 
 Modbus_DataAcquire_Controller::Modbus_DataAcquire_Controller(Modbus_DataAcquire* modbusDA, QObject* parent)
 : HttpRequestHandler(parent)
@@ -70,7 +72,7 @@ QString queryHistoryRecords(QString file_name, QString start){
         return "[]";
 
     QStringList skipRecords;
-    int left = 150;
+    int left = RECORD_PAGE;
 
     if (file.open(QIODevice::ReadOnly))
     {
@@ -82,7 +84,9 @@ QString queryHistoryRecords(QString file_name, QString start){
           QString line = in.readLine();
           lineCounter++;
           if(lineCounter<_start){
-            skipRecords.append(line);
+              skipRecords.append(line);
+              if(skipRecords.length()>RECORD_PAGE)
+                  skipRecords.removeAt(0);
               continue;
             }
 
